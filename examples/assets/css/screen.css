@@ -1,0 +1,22 @@
+*{
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+	font: 12px/15px Arial, sans-serif;
+	color: #333;
+}
+
+h1{
+	font-size: 1.6em;
+	font-weight: bold;
+}
+
+h3{
+	font-size: 1.4em;
+	font-weight: bold;
+}
+
+ul.examplelist li{
+	width: 300px;
+	margin: 10px;
+}
