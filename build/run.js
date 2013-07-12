@@ -68,9 +68,6 @@ app.use( "/example", express.static( path.join( SERVER_ROOT, CONF.exampleDir ) )
 */
 app.use( "/" + CONF.srcDir, express.static( path.join( SERVER_ROOT, CONF.srcDir ) ) );
 
-
-
-
 /**
 * Send out favicons - yehaa
 */
