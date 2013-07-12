@@ -10,6 +10,8 @@ exports.CONFIG = {
 	exampleConfigFileName: "example.json",
 
 	srcDir: "fc",
+
+	templateFolder: "examples/assets/tpl",
 	/**
 	* The file extension
 	* for files within the pages

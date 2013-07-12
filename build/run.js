@@ -50,7 +50,7 @@ app.get( "/", tasks.setView, tasks.getExampleList, tasks.send );
 /**
 * Route requests to /docs, /examples etc.
 */
-app.get( "/examples/:example", tasks.setView, tasks.getSourceFileList, tasks.send );
+app.get( "/examples/:example", tasks.setView, tasks.getExampleList, tasks.getSourceFileList, tasks.send );
 
 /**
 * Everything directory is browsable by default

@@ -11,12 +11,44 @@ h1{
 	font-weight: bold;
 }
 
-h3{
-	font-size: 1.4em;
+
+
+nav{
+	height: 30px;
+	width: 100%;
+	background: #333;
+	color: #fff;
+}
+
+nav ul.examplelist li{
+	float: left;
+	color: #fff;
+	border-right: 1px solid #fff;
+	
+	position: relative;
+}
+
+nav ul.examplelist li a{
+	display: block;
+	padding: 7px 0;
+	text-align: center;
+	width: 200px;
+	cursor: pointer;
+	font-weight: normal;
+}
+
+
+nav ul.examplelist li a:hover,
+nav ul.examplelist li a.active{
+	background: #000;
 	font-weight: bold;
 }
 
-ul.examplelist li{
-	width: 300px;
-	margin: 10px;
+nav ul.examplelist li h3{
+	color: #fff;
+	font-size: 12px;
+}
+
+nav ul.examplelist li p{
+	display: none;
 }

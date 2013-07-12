@@ -12,7 +12,23 @@ var tools = require( './tools.js' );
 */
 exports.template = function( sPath, vData )
 {
-	var sTemplate = fs.readFileSync( path.join( CONF.templateFolder, sPath ), "utf8" );
+	var sTemplatePath = path.join( SERVER_ROOT, CONF.templateFolder, sPath + ".html" );
+
+	try
+	{
+		var sTemplate = fs.readFileSync( sTemplatePath, "utf8" );
+	}
+	catch( e )
+	{
+		if( e.code === "ENOENT" )
+		{
+			console.log( ( "Can't find template '" + sPath + "' in Folder " + path.join( CONF.templateFolder, sPath ) ).red );
+		}
+		else
+		{
+			throw e.toString();
+		}
+	}
 
 	if( vData )
 	{
