@@ -77,7 +77,7 @@ exports.getExampleList = function( oRequest, oResponse, next )
 		for( var i = 0; i < pExtensionFiles.length; i++ )
 		{
 			mEntry = JSON.parse( pExtensionFiles[ i ].content );
-			mEntry.link = path.dirname( tools.fileNameToUrl( pExtensionFiles[ i ].path ) );
+			mEntry.link = path.dirname( tools.fileNameToUrl( pExtensionFiles[ i ].path ) ) + "/";
 
 			oResponse.locals.examples.push( mEntry );
 		}
@@ -102,6 +102,11 @@ exports.getSourceFileList = function( oRequest, oResponse, next )
 			js: mResult.js[ 0 ].map( tools.fileNameToUrl ),
 			css: mResult.css[0].map( tools.fileNameToUrl )
 		};
+
+		var sBootstrap = "/fc/js/bootstrap.js";
+
+		oResponse.locals.ressources.js.splice( oResponse.locals.ressources.js.indexOf( sBootstrap ), 1 );
+		oResponse.locals.ressources.js.unshift( sBootstrap );
 
 		next();
 	};

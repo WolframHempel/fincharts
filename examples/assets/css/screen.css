@@ -4,6 +4,14 @@
 	list-style-type: none;
 	font: 12px/15px Arial, sans-serif;
 	color: #333;
+	background: #000;
+}
+
+#wrapper{
+	width: 800px;
+	height: 600px;
+	background: #333;
+	margin: 20px auto;
 }
 
 h1{

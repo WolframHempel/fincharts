@@ -6,7 +6,9 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-		<link rel="stylesheet" type="text/css" href="/example/assets/css/screen.css">
+		<link rel="stylesheet" type="text/css" href="/examples/assets/css/screen.css">
+
+		<script type="text/javascript" src="/examples/assets/js/sample_data.js"></script>
 
 		{{#each ressources.css}}
 			<link rel="stylesheet" type="text/css" href="{{this}}">
@@ -15,12 +17,14 @@
 		{{#each ressources.js}}
 			<script type="text/javascript" src="{{this}}"></script>
 		{{/each}}
+
+		<script type="text/javascript" src="script.js"></script>
 	</head>
 	<body>
 		<nav>{{template "nav" this}}</nav>
 		
 		<div id="wrapper">
-			Linechart example
+
 		</div>
 	</body>
 </html>

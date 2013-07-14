@@ -61,7 +61,7 @@ app.use( "/examples", express.directory( path.join( SERVER_ROOT, CONF.exampleDir
 * Serve everything within the root folder as
 * a static file unless specified otherwise by a preceding rule
 */
-app.use( "/example", express.static( path.join( SERVER_ROOT, CONF.exampleDir ) ) );
+app.use( "/" + CONF.exampleDir, express.static( path.join( SERVER_ROOT, CONF.exampleDir ) ) );
 
 /**
 * Serve the source directory
