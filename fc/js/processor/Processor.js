@@ -2,17 +2,20 @@ fc.namespace( "fc.processor" );
 
 fc.processor.Processor = function()
 {
+	fc.tools.EventEmitter.call( this );
+
 	this._pWorkers = [];
 	this._mTaskCallbacks = {};
 	this._nTaskId = 0;
+	this._nDefaultJobCount = 0;
 
-	if( typeof window.Worker === "function" )
+	if( typeof window.Worker === "function" && fc.defaults.useWorkerIfAvailable === true )
 	{
 		this._createWorker();
 	}
 	else
 	{
-		//TODO create fallback for browser that don't support worker
+		this._createSimulatedWorker();
 	}
 };
 
@@ -53,9 +56,9 @@ fc.processor.Processor.prototype.runJobs = function( pJobConfigs, fCallback )
 		data: { pipeline: pJobConfigs }
 	};
 
-	oWorker.postMessage( mAction );
-
 	this._registerTaskCallback( 1, nTaskId, fCallback );
+
+	oWorker.postMessage( mAction );
 };
 
 /************************************************************************
@@ -80,12 +83,12 @@ fc.processor.Processor.prototype._sendToAllWorkers = function( sAction, mData, f
 		data: mData
 	};
 
+	this._registerTaskCallback( this._pWorkers.length, nTaskId, fCallback );
+
 	for( var i = 0; i < this._pWorkers.length; i++ )
 	{
 		this._pWorkers[ i ].postMessage( mMessage );
 	}
-
-	this._registerTaskCallback( this._pWorkers.length, nTaskId, fCallback );
 };
 
 fc.processor.Processor.prototype._getTaskId = function()
@@ -112,7 +115,7 @@ fc.processor.Processor.prototype._getIdleWorker = function()
 
 fc.processor.Processor.prototype._processWorkerMessage = function( mMessageEvent )
 {
-	//console.log( mMessageEvent.data );
+	console.log( mMessageEvent.data, this._mTaskCallbacks );
 	var mTaskCallback = this._mTaskCallbacks[ mMessageEvent.data.taskId ];
 
 	if( mTaskCallback )
@@ -127,35 +130,74 @@ fc.processor.Processor.prototype._processWorkerMessage = function( mMessageEvent
 			delete this._mTaskCallbacks[ mMessageEvent.data.taskId ];
 		}
 	}
+	/**
+	* If an error occurs for an action without a callback, throw it so
+	* it doesn't get lost
+	*/
+	else if( mMessageEvent.data.success !== true )
+	{
+		throw mMessageEvent.data;
+	}
 };
 
-fc.processor.Processor.prototype._createWorker = function( sName, fJob )
+fc.processor.Processor.prototype._createWorker = function()
 {
 	var sWorkerCode = /\{([^]*?)\}$/g.exec( fc.processor.worker.Worker.toString() )[ 1 ];
 
 	var sWorkerBlobUrl =  URL.createObjectURL( new Blob( [ sWorkerCode ] ) );
 
-	var oWorker, nTaskId;
+	var oWorker, nTaskId = this._getTaskId();
 
 	for( var i = 0; i < fc.defaults.numberOfWorkers; i++ )
 	{
-		oWorker = new Worker( sWorkerBlobUrl );
-
-		oWorker.onmessage = this._processWorkerMessage.bind( this );
-
-		oWorker.isReady = false;
-
-		nTaskId = this._getTaskId();
-
-		oWorker.postMessage( { action: "setIndex", data: i, taskId: nTaskId } );
-
-		this._registerTaskCallback( 1, nTaskId, this._onWorkerReady.bind( this ) );
-
-		this._pWorkers.push( oWorker );
+		this._bindWorker( new Worker( sWorkerBlobUrl ), i, nTaskId );
 	}
+};
+
+fc.processor.Processor.prototype._createSimulatedWorker = function()
+{
+	this._bindWorker( new fc.processor.worker.SimulatedWorker(), 0 );
+};
+
+fc.processor.Processor.prototype._bindWorker = function( oWorker, nIndex, nTaskId )
+{
+	oWorker.onmessage = this._processWorkerMessage.bind( this );
+
+	oWorker.isReady = false;
+
+	this._registerTaskCallback( 1, nTaskId, this._onWorkerReady.bind( this ) );
+
+	this._pWorkers.push( oWorker );
+
+	oWorker.postMessage( { action: "setIndex", data: nIndex, taskId: nTaskId } );
 };
 
 fc.processor.Processor.prototype._onWorkerReady = function( oResponse )
 {
 	this._pWorkers[ oResponse.index ].isReady = true;
+
+	this._nDefaultJobCount = Object.keys( fc.processor.jobs ).length;
+
+	for( var sJob in fc.processor.jobs )
+	{
+		this.addJob( sJob, fc.processor.jobs[ sJob ], this._onDefaultJobAdded.bind( this ) );
+	}
+};
+
+fc.processor.Processor.prototype._onDefaultJobAdded = function( oResponse )
+{
+	this._nDefaultJobCount--;
+
+	if( oResponse.success !== true )
+	{
+		throw oResponse;
+	}
+
+	if( this._nDefaultJobCount === 0 )
+	{
+		/**
+		* Not elegant, but better than having to call Processor.init();
+		*/
+		setTimeout( this.emit.bind( this, "ready" ), 1);
+	}
 };

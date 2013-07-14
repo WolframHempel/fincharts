@@ -1,13 +1,24 @@
 fc.namespace( "fc.processor.worker" );
 
-fc.processor.worker.Worker = function()
+fc.processor.worker.Worker = function( oSimulatedWorkerContext )
 {
 	var mParams = {},
 		nIndex = null,
 		mSeries = {},
 		mJobs = {};
 
+	/**
+	* Not sure if this is the best way to determine whether we're
+	* in a worker or not.
+	*/
+	if( self.document )
+	{
+		self = oSimulatedWorkerContext;
+	}
 
+	/**
+	* The worker listens for incoming messages
+	*/
 	self.onmessage = function( e )
 	{
 		var oResponse = new Response( e.data.action, e.data.taskId );
@@ -22,22 +33,45 @@ fc.processor.worker.Worker = function()
 		}
 	};
 
+	/**
+	* This Response object is passed to any action the worker can execute.
+	* the important bit is nTaskId here. This id is incremented by the processor
+	* for every single call against any of the workers. The worker just keeps it and passes
+	* it back. This allows the Processor to identify which task has finished and call
+	* the right callback
+	*
+	* @param {STRING} sAction the action to be called ( must be in mActions )
+	* @param {INT} nTaskId An id, used by the processor to map completed tasks to callbacks
+	*/
 	var Response = function( sAction, nTaskId )
 	{
-		this.send = function( mResponseData )
+		/**
+		* Every successful action uses this method confirm its execution
+		* and optionally send data back to the processor.
+		*
+		* @param {VARIOUS} vResponseData Any serialisable object (no functions!)
+		*/
+		this.send = function( vResponseData )
 		{
 			var mData =
 			{
 				type: "confirmAction",
-				data: mResponseData || null,
+				data: vResponseData || null,
 				index: nIndex,
 				action: sAction,
-				taskId: nTaskId
+				taskId: nTaskId,
+				success: true
 			};
 
 			self.postMessage( mData );
 		};
 
+		/**
+		* This method is used to notify the Processor when an
+		* error occured within the worker
+		*
+		* @param {STRING} sErrorMessage
+		*/
 		this.sendFail = function( sErrorMessage )
 		{
 			var mData =
@@ -46,7 +80,8 @@ fc.processor.worker.Worker = function()
 				reason: sErrorMessage,
 				index: nIndex,
 				action: sAction,
-				taskId: nTaskId
+				taskId: nTaskId,
+				success: false
 			};
 
 			self.postMessage( mData );
@@ -86,12 +121,22 @@ fc.processor.worker.Worker = function()
 			}
 		},
 
+		/**
+		* Runs a pipeline (list) of Jobs in a serial, asynchronous
+		* fashion
+		*/
 		runJobs: function( mData, oResponse )
 		{
 			var nCurrentJobIndex = 0;
 
-			var fRunNext = function( vOutput )
+			var fRunNext = function( vError, vOutput )
 			{
+				if( vError !== null )
+				{
+					oResponse.sendFail( 'Error while running job "' + mData.pipeline[ nCurrentJobIndex - 1 ].name + '": ' + vError.toString() );
+					return;
+				}
+
 				var fJob, mJobConfig;
 
 				if( mData.pipeline.length > nCurrentJobIndex )

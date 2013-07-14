@@ -1,4 +1,6 @@
 fc.defaults =
 {
-	numberOfWorkers: 3
+	numberOfWorkers: 3,
+
+	useWorkerIfAvailable: false
 };

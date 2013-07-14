@@ -4,22 +4,15 @@ window.onload = function()
 
 	oProcessor.setSeries( "open", AAPL_OHLC.open );
 
-	var fGetLength = function( mJobConfig, mInputData, fDone )
-	{
-		fDone( mSeries[ mJobConfig.series ].length );
-	};
 
-	var fOnReady = function()
-	{
-		var pJobConfig =
-		[
-			{ name: "getLength", config: { series: "open" } }
-		];
+	var pJobConfig =
+	[
+		{ name: "slice", config: { series: "open", start: 500, to: 800 } }
+	];
 
+	oProcessor.on( "ready", function(){
 		oProcessor.runJobs( pJobConfig, function( oResult ){
 			console.log( "RAN SUCCESSFULLY", oResult );
 		});
-	};
-
-	oProcessor.addJob( "getLength", fGetLength, fOnReady );
+	});
 };
