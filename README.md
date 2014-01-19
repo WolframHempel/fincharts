@@ -1,4 +1,4 @@
 fincharts
 =========
 
-High performance financial charting
+High performance financial charting - very early days
